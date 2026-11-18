@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Local configuration
+.env
+
+# Trained artifacts and datasets (large / licensed separately)
+models/*.pt
+models/*.pth
+models/*.joblib
+models/*.onnx
+data/
+artifacts/
+_smoke_data/
+
+# Local screenshots and scratch files
+/tmp_*
+/ui-*.png

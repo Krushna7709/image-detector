@@ -33,8 +33,8 @@ def test_heuristic_signals_and_ranges(image_factory):
     )
     assert 0.0 <= result.probability <= 1.0
     assert 0.0 <= result.reliability <= 1.0
-    assert len(result.signals) == 7
-    assert sum(signal.weight for signal in result.signals) == pytest.approx(0.92)
+    assert len(result.signals) == 9
+    assert sum(signal.weight for signal in result.signals) == pytest.approx(1.0)
     assert all(0.0 <= signal.score <= 1.0 for signal in result.signals)
 
 

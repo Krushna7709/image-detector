@@ -1,6 +1,6 @@
 # Model artifacts
 
-This directory is where ForensIQ looks for trained artifacts. The files are
+This directory is where Image Detector looks for trained artifacts. The files are
 ignored by git because they are large and dataset-dependent.
 
 | File | Produced by | Purpose |
@@ -11,6 +11,6 @@ ignored by git because they are large and dataset-dependent.
 | `localizer.pt` | `python -m aiforensics.training.train_localizer` | U-Net edit localiser |
 
 Use `python -m aiforensics info` to confirm which artifacts the engine loaded.
-Set `FORENSIQ_MODEL_DIR` or the per-artifact environment variables to point
+Set `IMAGE_DETECTOR_MODEL_DIR` or the per-artifact environment variables to point
 somewhere else. Missing artifacts are not an error: the engine falls back to the
 classical pipeline and records that in the report.

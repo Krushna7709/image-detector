@@ -33,37 +33,37 @@ EXAMPLES: list[dict[str, str]] = [
     {
         "name": "ai_mountain",
         "file": "ai_mountain.png",
-        "label": "Synthetic landscape · C2PA",
+        "label": "Synthetic landscape, C2PA",
         "kind": "ai",
     },
     {
         "name": "ai_portrait",
         "file": "ai_portrait.png",
-        "label": "Synthetic portrait · C2PA",
+        "label": "Synthetic portrait, C2PA",
         "kind": "ai",
     },
     {
         "name": "ai_product",
         "file": "ai_product.png",
-        "label": "Synthetic product shot · C2PA",
+        "label": "Synthetic product shot, C2PA",
         "kind": "ai",
     },
     {
         "name": "real_mountain_lake",
         "file": "real_mountain_lake.jpg",
-        "label": "Camera photo · mountain lake",
+        "label": "Camera photo, mountain lake",
         "kind": "real",
     },
     {
         "name": "real_cat_portrait",
         "file": "real_cat_portrait.jpg",
-        "label": "Camera photo · cat portrait",
+        "label": "Camera photo, cat portrait",
         "kind": "real",
     },
     {
         "name": "real_street_market",
         "file": "real_street_market.jpg",
-        "label": "Camera photo · street market",
+        "label": "Camera photo, street market",
         "kind": "real",
     },
 ]
@@ -78,7 +78,7 @@ _ANALYSIS_SEMAPHORE = asyncio.Semaphore(2)
 async def lifespan(app: FastAPI):
     app.state.engine = ForensicsEngine(settings)
     logger.info(
-        "ForensIQ started | detector=%s attribution=%s localizer=%s",
+        "Image Detector started | detector=%s attribution=%s localizer=%s",
         app.state.engine.detector_mode,
         app.state.engine.attribution is not None,
         "unet" if app.state.engine.unet else "heuristic",

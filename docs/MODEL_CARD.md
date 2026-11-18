@@ -1,8 +1,8 @@
-# Model card: ForensIQ
+# Model card: Image Detector
 
 ## Overview
 
-ForensIQ is an image-forensics decision-support system. It estimates whether an image is AI-generated, highlights regions inconsistent with the surrounding image, and attributes generation to a known source or an explicit unknown class.
+Image Detector is an image-forensics decision-support system. It estimates whether an image is AI-generated, highlights regions inconsistent with the surrounding image, and attributes generation to a known source or an explicit unknown class.
 
 | Item | Value |
 | --- | --- |
@@ -38,13 +38,13 @@ Trained artifacts are not distributed. Users train their own heads with `src/aif
 
 1. Decode and normalise the image; apply EXIF orientation; cap analysis size at 1024 px.
 2. Extract EXIF, PNG text, XMP, C2PA/JUMBF markers, JPEG quality estimate and watermark markers.
-3. Compute seven classical signals: noise-field heterogeneity, detail distribution, residual noise floor, radial spectral decay, high-frequency balance, colour signature and provenance.
+3. Compute nine classical signals: noise-field heterogeneity, detail distribution (flat-area share), 2x2 pixel-grid periodicity, local edit consistency, residual noise floor, radial spectral decay, high-frequency balance, colour signature and provenance. A smooth-region grain floor caps the noise-field cue when the uniform field looks like acquisition or compression noise rather than a generator artifact. On lossless or JPEG q95+ uploads, a compact region whose noise and recompression behaviour differs from the rest of the frame raises the probability into the AI band (an AI-inpainted face, for example). Below q95 the local-edit cue is skipped because JPEG block noise mimics it.
 4. Optionally run a trained detector and a trained attribution head on CLIP features.
 5. Fuse the trained probability with classical evidence (75% model weight when available), map to confidence and an uncertain band.
 6. Build a localisation heatmap from noise and recompression inconsistency, or a U-Net mask when trained.
 7. Render heatmap, boxes, spectrum and optional Grad-CAM; attach notes and limitations.
 
-The default heuristic probability is deliberately conservative and uses the image's own median as a reference, so a globally uniform image is not turned into a false hotspot. The probability is an indicator, not a calibrated frequency.
+The default heuristic probability is deliberately conservative and uses the image's own median as a reference, so a globally uniform image is not turned into a false hotspot. The probability is an indicator, not a calibrated frequency. Noise-field heterogeneity carries most of the weight, followed by pixel-grid periodicity, detail distribution, provenance and local edit consistency. The pixel-grid cue measures 2x2 parity in the green high-pass residual, a trace left by generator upsampling on the pixel lattice; camera and JPEG output do not show it. The grain gate keeps a smooth, grainy photograph from being read as a clean render. The local-edit cue highlights compact noise/recompression inconsistencies; a strong hit floors the probability at 0.68, a weaker one at 0.54, but only for lossless or q95+ uploads because lower-quality JPEG spreads block noise that imitates the cue. When heavy blur or resampling is detected, the engine down-weights the cues it destroys and pulls the probability toward the uncertain band instead of reporting a confident verdict.
 
 ## Training data
 
@@ -77,7 +77,8 @@ The demo figures in the README describe the bundled examples with the heuristic 
 - **Distribution shift.** Generators evolve. A head trained on SDXL, SD3 and FLUX may fail on a new model or on images passed through an unseen pipeline.
 - **Post-processing.** JPEG, resizing, blur, denoising, screenshots and social platforms erase the cues the detector uses. Provenance metadata is usually the first casualty.
 - **Metadata spoofing.** EXIF, PNG text and even C2PA markers can be forged or transplanted. The tool never verifies signatures and labels metadata as spoofable.
-- **Classical signal bias.** Noise and frequency statistics depend on camera, ISO, scene texture, denoising and editing software. Low-light or denoised photographs can resemble renders.
+- **Local edits.** The local-edit cue finds compact noise/recompression inconsistencies, not semantic manipulation. It is only applied to lossless or JPEG q95+ uploads; at lower quality the evidence is erased or indistinguishable from compression artifacts, so a subtle AI face edit in an ordinary JPEG can still read as real or uncertain. Ordinary retouching (healing, clone stamping, compositing) can trigger the same cue, so a hit is not proof of AI. High-quality, well-blended edits remain the hardest case.
+- **Classical signal bias.** Noise and frequency statistics depend on camera, ISO, scene texture, denoising and editing software. Low-light or denoised photographs can resemble renders; busy scenes with detail everywhere can resemble generated renders. The pixel-grid cue fades under resampling and JPEG recompression, and the grain gate is sensitive to sensor noise and compression: a strongly denoised photo can look render-like, while a grainy photo can hide a generator trace. Operating points were chosen on a small bundled reference set plus external observations, not on a representative benchmark, so treat the score as an indicator. Heavy blur or downscaling erases the cues entirely, which is why the engine widens uncertainty in those cases.
 - **Localisation.** The heatmap highlights inconsistency, not intent or semantics. A fully synthetic image can show hotspots without any edit, and a subtle edit can be missed. The U-Net, when used, is only as good as its masks.
 - **Attribution.** The open-set threshold trades accepted coverage against false names. An "unknown generator" result is informative; a named result is not a certainty.
 - **Calibration.** Platt scaling assumes the validation distribution resembles deployment. Without a validation split, thresholds are defaults or test-tuned and metrics become optimistic.

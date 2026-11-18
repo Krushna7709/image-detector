@@ -3,127 +3,140 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="ForensIQ - detect, localize and attribute AI-generated images with explainable forensic evidence.">
-  <meta name="theme-color" content="#070b10">
-  <title>ForensIQ · AI Image Forensics</title>
+  <meta name="description" content="Image Detector measures whether an image was made or edited by AI, which generator likely produced it, and where the suspicious pixels are.">
+  <meta name="theme-color" content="#1c1f23">
+  <title>Image Detector, AI image forensics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@400;500&family=Host+Grotesk:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23070b10'/%3E%3Cpath d='M32 10 51 21v22L32 54 13 43V21Z' fill='none' stroke='%2346e0b1' stroke-width='3'/%3E%3Ccircle cx='32' cy='32' r='7' fill='%2346e0b1'/%3E%3C/svg%3E">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%231c1f23'/%3E%3Cpath d='M32 10 51 21v22L32 54 13 43V21Z' fill='none' stroke='%23d9dde1' stroke-width='3'/%3E%3Ccircle cx='32' cy='32' r='7' fill='%23e3b341'/%3E%3C/svg%3E">
 </head>
 <body>
-  <div class="ambient" aria-hidden="true"></div>
+  <a class="skip" href="#main">Skip to content</a>
 
   <header class="site-header">
-    <a class="brand" href="/">
-      <svg class="brand-mark" viewBox="0 0 48 48" aria-hidden="true">
-        <path d="M24 4 41 14v20L24 44 7 34V14Z" fill="none" stroke="currentColor" stroke-width="2"/>
-        <path d="M16 24h16M24 16v16" stroke="currentColor" stroke-width="1" opacity=".35"/>
-        <circle cx="24" cy="24" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/>
-        <path d="M24 7v5M24 36v5M10 17l4.5 2.5M33.5 28.5 38 31M10 31l4.5-2.5M33.5 19.5 38 17" stroke="currentColor" stroke-width="1.5" opacity=".6"/>
-      </svg>
-      <span class="brand-text">
-        <strong>ForensIQ</strong>
-        <small>AI image forensics</small>
-      </span>
-    </a>
-    <div class="header-actions">
-      <span class="engine-chip" id="engineChip" title="Loading engine status">
-        <i class="dot"></i><span id="engineChipText">connecting…</span>
-      </span>
-      <a class="text-link" href="/docs" target="_blank" rel="noopener">API docs ↗</a>
+    <div class="container header-inner">
+      <a class="brand" href="/" aria-label="Image Detector home">
+        <svg class="brand-mark" viewBox="0 0 48 48" aria-hidden="true">
+          <path d="M24 4 41 14v20L24 44 7 34V14Z" fill="none" stroke="currentColor" stroke-width="2"/>
+          <circle cx="24" cy="24" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/>
+          <path d="M24 7v5M24 36v5M10 17l4.5 2.5M33.5 28.5 38 31M10 31l4.5-2.5M33.5 19.5 38 17" stroke="currentColor" stroke-width="1.5" opacity=".55"/>
+        </svg>
+        <span class="brand-text">
+          <strong>Image Detector</strong>
+          <small>AI image forensics</small>
+        </span>
+      </a>
+      <div class="header-actions">
+        <span class="engine-chip" id="engineChip" role="status" aria-live="polite" title="Loading engine status">
+          <span class="engine-state" aria-hidden="true"></span><span id="engineChipText">Connecting</span>
+        </span>
+        <a class="text-link" href="/docs" target="_blank" rel="noopener">API docs</a>
+      </div>
     </div>
   </header>
 
-  <main class="page">
-    <section class="hero">
-      <div class="hero-copy">
-        <p class="eyebrow">Detect · Localize · Attribute</p>
-        <h1>Is this image <em>real?</em></h1>
-        <p class="lede">
-          Upload a photo and get an evidence-backed estimate of whether it was made or
-          edited by AI, which tool likely produced it, and where the suspicious pixels are.
-        </p>
-        <ul class="tag-list">
-          <li>Frequency forensics</li>
-          <li>Noise-field analysis</li>
-          <li>C2PA provenance</li>
-          <li>Open-set attribution</li>
-          <li>Edit localization</li>
-        </ul>
-        <div class="disclaimer-banner">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2.5 20h19Z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 9v5M12 17v.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-          <p>Decision support, not proof. Every result reports uncertainty and its evidence.</p>
+  <main id="main" class="page container">
+    <section class="intake" aria-labelledby="intakeTitle">
+      <div class="intake-head">
+        <div class="intake-copy">
+          <h1 id="intakeTitle">Is this image real?</h1>
+          <p class="lede">
+            Upload a photo and get an evidence-backed estimate of whether it was made or
+            edited by AI, which tool likely produced it, and where the suspicious pixels are.
+          </p>
+        </div>
+        <div class="intake-meta">
+          <p class="disclaimer">Decision support, not proof. Every result reports uncertainty and its evidence.</p>
+          <ul class="capabilities" aria-label="What the analysis measures">
+            <li>Frequency forensics</li>
+            <li>Noise-field analysis</li>
+            <li>C2PA provenance</li>
+            <li>Open-set attribution</li>
+            <li>Edit localization</li>
+          </ul>
         </div>
       </div>
 
-      <div class="panel upload-panel">
-        <form id="uploadForm" novalidate>
-          <label class="dropzone" id="dropzone" for="fileInput" tabindex="0">
-            <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp,image/bmp,image/tiff" hidden>
-            <span class="dz-icon" aria-hidden="true">
-              <svg viewBox="0 0 32 32"><path d="M16 21V7m0 0-5.5 5.5M16 7l5.5 5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 21v3a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-            </span>
-            <span class="dz-title">Drop an image here</span>
-            <span class="dz-sub">or click to browse · JPEG, PNG, WEBP, TIFF · up to 15&nbsp;MB</span>
-          </label>
-
-          <div class="file-row hidden" id="fileRow">
-            <span class="file-name" id="fileName"></span>
-            <span class="file-size" id="fileSize"></span>
-            <button type="button" class="icon-btn" id="clearFile" title="Remove file" aria-label="Remove file">✕</button>
-          </div>
-
-          <div class="upload-controls">
-            <label class="select-label" for="distortionSelect">
-              Input condition
-              <select id="distortionSelect">
-                <option value="none">Original upload</option>
-                <option value="jpeg50">Recompressed · JPEG q50</option>
-                <option value="jpeg30">Recompressed · JPEG q30</option>
-                <option value="resize50">Downscaled 50%</option>
-                <option value="blur2">Gaussian blur σ2</option>
-              </select>
+      <div class="surface workbench">
+        <section class="intake-panel" aria-label="Image intake">
+          <form id="uploadForm" novalidate>
+            <label class="dropzone" id="dropzone" for="fileInput" tabindex="0">
+              <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp,image/bmp,image/tiff" hidden>
+              <img class="dz-preview hidden" id="dzPreview" alt="Preview of the selected image" decoding="async">
+              <span class="dz-icon" aria-hidden="true">
+                <svg viewBox="0 0 32 32"><path d="M16 21V7m0 0-5.5 5.5M16 7l5.5 5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 21v3a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              </span>
+              <span class="dz-caption">
+                <span class="dz-title">Drop an image here</span>
+                <span class="dz-sub">or click to browse. JPEG, PNG, WEBP, TIFF. Up to 15&nbsp;MB.</span>
+              </span>
             </label>
-            <button type="submit" class="btn primary" id="analyzeBtn">
-              <span>Analyze image</span>
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h12m0 0-4-4m4 4-4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="19" cy="12" r="2.2" fill="currentColor"/></svg>
-            </button>
-          </div>
-        </form>
 
-        <div class="examples">
-          <div class="examples-head">
-            <span>Try a sample</span>
-            <span class="tiny">3 real · 3 synthetic</span>
-          </div>
-          <div class="example-grid" id="exampleGrid">
-            <div class="example-skeleton"></div>
-            <div class="example-skeleton"></div>
-            <div class="example-skeleton"></div>
-          </div>
+            <div class="file-row hidden" id="fileRow">
+              <span class="file-name" id="fileName"></span>
+              <span class="file-size" id="fileSize"></span>
+              <button type="button" class="icon-btn" id="clearFile" title="Remove file" aria-label="Remove file">
+                <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 4 8 8M12 4l-8 8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              </button>
+            </div>
+
+            <div class="upload-controls">
+              <label class="select-label" for="distortionSelect">
+                Input condition
+                <select id="distortionSelect">
+                  <option value="none">Original upload</option>
+                  <option value="jpeg50">Recompressed, JPEG q50</option>
+                  <option value="jpeg30">Recompressed, JPEG q30</option>
+                  <option value="resize50">Downscaled 50%</option>
+                  <option value="blur2">Gaussian blur σ2</option>
+                </select>
+              </label>
+              <button type="submit" class="btn btn--primary" id="analyzeBtn">
+                <span>Analyze image</span>
+              </button>
+            </div>
+
+            <div class="intake-result hidden" id="intakeResult" role="status" aria-live="polite">
+              <span class="intake-result-label">Result</span>
+              <strong class="intake-result-value" id="intakeResultValue"></strong>
+              <span class="intake-result-meta" id="intakeResultMeta"></span>
+              <a class="text-link" href="#results">See the evidence</a>
+            </div>
+          </form>
+        </section>
+
+        <ol class="method" id="howGrid">
+          <li>
+            <h2>Signal forensics</h2>
+            <p>Noise-field regularity, spectral decay, detail distribution and provenance are measured independently.</p>
+          </li>
+          <li>
+            <h2>Fused decision</h2>
+            <p>Evidence is combined into a probability with confidence and reliability, never a bare verdict.</p>
+          </li>
+          <li>
+            <h2>Visual proof</h2>
+            <p>FFT spectra, localized anomaly heatmaps and Grad-CAM make the reasoning inspectable.</p>
+          </li>
+        </ol>
+      </div>
+
+      <div class="examples">
+        <div class="examples-head">
+          <span>Try a sample</span>
+        </div>
+        <div class="example-grid" id="exampleGrid">
+          <div class="example-skeleton"></div>
+          <div class="example-skeleton"></div>
+          <div class="example-skeleton"></div>
         </div>
       </div>
     </section>
 
-    <section class="how-grid" id="howGrid">
-      <article class="panel how-card">
-        <span class="step">01</span>
-        <h2>Signal forensics</h2>
-        <p>Noise-field regularity, spectral decay, detail distribution and provenance are measured independently.</p>
-      </article>
-      <article class="panel how-card">
-        <span class="step">02</span>
-        <h2>Fused decision</h2>
-        <p>Evidence is combined into a probability with confidence and reliability, never a bare verdict.</p>
-      </article>
-      <article class="panel how-card">
-        <span class="step">03</span>
-        <h2>Visual proof</h2>
-        <p>FFT spectra, localized anomaly heatmaps and Grad-CAM make the reasoning inspectable.</p>
-      </article>
-    </section>
-
-    <section class="loading-card panel hidden" id="loadingCard" aria-live="polite">
-      <div class="scanner" aria-hidden="true"><span></span></div>
+    <section class="loading-card hidden" id="loadingCard" aria-live="polite">
+      <div class="loading-track" aria-hidden="true"><span></span></div>
       <div>
         <h2>Analyzing image</h2>
         <p id="loadingText">Hashing file…</p>
@@ -131,7 +144,7 @@
     </section>
 
     <section class="results hidden" id="results" aria-live="polite">
-      <div class="verdict-grid">
+      <div class="surface readout">
         <article class="panel verdict-card" id="verdictCard">
           <div class="gauge-wrap">
             <svg class="gauge" viewBox="0 0 200 200" aria-hidden="true">
@@ -139,19 +152,19 @@
               <circle class="gauge-value" id="gaugeValue" cx="100" cy="100" r="82"></circle>
             </svg>
             <div class="gauge-center">
-              <strong id="gaugeNumber">–</strong>
+              <strong id="gaugeNumber"></strong>
               <span>P(AI)</span>
             </div>
           </div>
           <div class="verdict-copy">
-            <span class="verdict-chip" id="verdictChip">—</span>
-            <h2 id="verdictTitle">—</h2>
-            <p id="verdictSub">—</p>
+            <span class="verdict-chip" id="verdictChip"></span>
+            <h2 id="verdictTitle"></h2>
+            <p id="verdictSub"></p>
             <dl class="mini-stats">
-              <div><dt>Confidence</dt><dd id="statConfidence">—</dd></div>
-              <div><dt>Reliability</dt><dd id="statReliability">—</dd></div>
-              <div><dt>Engine</dt><dd id="statEngine">—</dd></div>
-              <div><dt>Latency</dt><dd id="statLatency">—</dd></div>
+              <div><dt>Confidence</dt><dd id="statConfidence"></dd></div>
+              <div><dt>Reliability</dt><dd id="statReliability"></dd></div>
+              <div><dt>Engine</dt><dd id="statEngine"></dd></div>
+              <div><dt>Latency</dt><dd id="statLatency"></dd></div>
             </dl>
           </div>
         </article>
@@ -159,34 +172,44 @@
         <article class="panel">
           <div class="panel-head">
             <h2>Evidence signals</h2>
-            <span class="panel-hint">0 real-like → 1 AI-like</span>
+            <span class="panel-hint">0 real-like to 1 AI-like</span>
           </div>
           <div class="signal-list" id="signalList"></div>
         </article>
       </div>
 
-      <div class="result-grid">
+      <div class="surface evidence">
         <article class="panel viewer-card">
           <div class="panel-head">
-            <h2>Localized inconsistencies</h2>
+            <h2>Edit localization</h2>
             <div class="viewer-tools">
               <label class="switch"><input type="checkbox" id="toggleHeat" checked><span>Heatmap</span></label>
               <label class="switch"><input type="checkbox" id="toggleBoxes" checked><span>Regions</span></label>
-              <input type="range" id="heatOpacity" min="0" max="100" value="55" aria-label="Heatmap opacity">
+              <span class="slider">
+                <input type="range" id="heatOpacity" min="0" max="100" value="55" aria-label="Heatmap opacity">
+              </span>
             </div>
           </div>
           <div class="viewer" id="viewer">
-            <img id="baseImage" alt="Analyzed image">
-            <img id="heatImage" class="viewer-layer" alt="Manipulation heatmap overlay">
-            <img id="boxImage" class="viewer-layer" alt="Suspicious region boxes">
+            <img id="baseImage" alt="Analyzed image" width="1200" height="800" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
+            <img id="heatImage" class="viewer-layer" alt="Manipulation heatmap overlay" width="1200" height="800" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
+            <img id="boxImage" class="viewer-layer" alt="Suspicious region boxes" width="1200" height="800" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
           </div>
           <p class="caption" id="editCaption"></p>
         </article>
 
-        <article class="panel">
+        <article class="panel gradcam-card hidden" id="gradcamCard">
+          <div class="panel-head">
+            <h2>Model attention</h2>
+            <span class="panel-hint">Grad-CAM</span>
+          </div>
+          <img id="gradcamImage" alt="Grad-CAM attention map" width="1200" height="800" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
+          <p class="caption">Regions that drove the trained CNN decision.</p>
+        </article>
+
+        <article class="panel attribution-card">
           <div class="panel-head">
             <h2>Attribution</h2>
-            <span class="panel-hint">source generator</span>
           </div>
           <div class="attribution-list" id="attributionList"></div>
           <p class="caption" id="attributionCaption"></p>
@@ -197,47 +220,36 @@
             <h2>Frequency view</h2>
             <span class="panel-hint">FFT spectrum</span>
           </div>
-          <img id="spectrumImage" alt="Frequency spectrum and radial power profile">
+          <img id="spectrumImage" alt="Frequency spectrum and radial power profile" width="1200" height="600" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
           <p class="caption">Radial power decay and periodic peaks can reveal upsampling or denoising artifacts.</p>
-        </article>
-
-        <article class="panel gradcam-card hidden" id="gradcamCard">
-          <div class="panel-head">
-            <h2>Model attention</h2>
-            <span class="panel-hint">Grad-CAM</span>
-          </div>
-          <img id="gradcamImage" alt="Grad-CAM attention map">
-          <p class="caption">Regions that drove the trained CNN decision.</p>
         </article>
 
         <article class="panel metadata-card">
           <div class="panel-head">
             <h2>Metadata &amp; provenance</h2>
-            <span class="panel-hint" id="metaFormat">—</span>
+            <span class="panel-hint" id="metaFormat"></span>
           </div>
           <dl class="meta-grid" id="metadataGrid"></dl>
         </article>
 
-        <article class="panel">
+        <article class="panel robustness-card">
           <div class="panel-head">
             <h2>Robustness</h2>
-            <span class="panel-hint">stress test</span>
           </div>
           <p class="caption">How the estimate holds up after the kind of processing images receive in the wild.</p>
-          <button class="btn secondary" id="stressBtn" disabled>Run stress test</button>
+          <button type="button" class="btn btn--quiet" id="stressBtn" disabled>Run stress test</button>
           <div class="stress-results" id="stressResults"></div>
         </article>
 
-        <article class="panel">
+        <article class="panel report-card">
           <div class="panel-head">
             <h2>Report</h2>
-            <span class="panel-hint">machine readable</span>
           </div>
           <p class="caption">Download the full evidence bundle as JSON, including all images.</p>
-          <button class="btn secondary" id="downloadJson" disabled>Download JSON</button>
+          <button type="button" class="btn btn--quiet" id="downloadJson" disabled>Download JSON</button>
           <dl class="hash">
             <dt>SHA-256</dt>
-            <dd id="shaValue">—</dd>
+            <dd id="shaValue"></dd>
           </dl>
           <p class="tiny" id="timing"></p>
         </article>
@@ -245,23 +257,24 @@
         <article class="panel notes-card">
           <div class="panel-head">
             <h2>Findings &amp; caveats</h2>
-            <span class="panel-hint">read before acting</span>
           </div>
           <ul class="notes" id="notesList"></ul>
         </article>
       </div>
 
       <div class="results-footer">
-        <button class="btn ghost" id="resetBtn">Analyze another image</button>
-        <p class="tiny">Processed in memory · never stored · no third-party calls during analysis.</p>
+        <button type="button" class="btn btn--quiet" id="resetBtn">Analyze another image</button>
+        <p class="tiny">Processed in memory. Never stored. No third-party calls during analysis.</p>
       </div>
     </section>
   </main>
 
   <footer class="site-footer">
-    <span>ForensIQ · research prototype</span>
-    <span>Detect · Localize · Attribute</span>
-    <a href="/docs" target="_blank" rel="noopener">OpenAPI</a>
+    <div class="container footer-inner">
+      <span>Image Detector, research prototype</span>
+      <span>Detect, localize, attribute</span>
+      <a href="/docs" target="_blank" rel="noopener">OpenAPI</a>
+    </div>
   </footer>
 
   <div class="toast hidden" id="toast" role="alert"></div>

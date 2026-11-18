@@ -168,7 +168,7 @@ def cmd_serve(args: argparse.Namespace) -> int:
             )
             return 2
 
-    print(f"ForensIQ {settings.version} -> http://{args.host}:{port}")
+    print(f"Image Detector {settings.version} -> http://{args.host}:{port}")
     uvicorn.run(
         "aiforensics.api.app:app",
         host=args.host,
@@ -184,7 +184,7 @@ def build_parser() -> argparse.ArgumentParser:
         prog="aiforensics",
         description="Detect, localize and attribute AI-generated images.",
     )
-    parser.add_argument("--version", action="version", version=f"ForensIQ {settings.version}")
+    parser.add_argument("--version", action="version", version=f"Image Detector {settings.version}")
     sub = parser.add_subparsers(dest="command", required=True)
 
     analyze_parser = sub.add_parser("analyze", help="Analyze one image")

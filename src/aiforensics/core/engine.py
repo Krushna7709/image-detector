@@ -1,4 +1,4 @@
-"""The ForensIQ analysis engine.
+"""The Image Detector analysis engine.
 
 Orchestrates preprocessing, metadata forensics, classical evidence, optional
 trained detectors, attribution and edit localization, then assembles one
@@ -135,22 +135,33 @@ class ForensicsEngine:
         bundle = extract_metadata(data, loaded)
         meta = bundle.report
 
+        uninformative = (
+            not bundle.generator_hint
+            and not bundle.synthetic_provenance
+            and _looks_uninformative(loaded)
+        )
+        localization = self.localizer.localize(loaded.analysis_rgb)
+        # Below q95, JPEG block noise imitates local edit traces, so the cue is
+        # only trusted for lossless formats or very high-quality JPEG.
+        quality_ok = loaded.format in {"PNG", "BMP", "TIFF"} or (
+            loaded.format == "JPEG" and (meta.jpeg_quality_estimate or 0) >= 95
+        )
+        local_edit = None if uninformative or not quality_ok else localization.edited_probability
+
         heuristic = self.heuristic.analyze(
             loaded.analysis_rgb,
             generator_hint=bundle.generator_hint,
             has_camera_exif=bool(meta.camera),
             jpeg_quality=meta.jpeg_quality_estimate,
             synthetic_provenance=bundle.synthetic_provenance,
+            local_edit=local_edit,
+            local_edit_regions=len(localization.regions),
         )
 
         notes: list[str] = []
         if distortion_label != "none":
             notes.append(f"Analysed a simulated copy: {distortion_label.lower()}.")
-        if (
-            not bundle.generator_hint
-            and not bundle.synthetic_provenance
-            and _looks_uninformative(loaded)
-        ):
+        if uninformative:
             heuristic.probability = 0.5
             heuristic.reliability = min(heuristic.reliability, 0.05)
             notes.append(
@@ -216,7 +227,7 @@ class ForensicsEngine:
         notes.extend(heuristic.notes)
 
         attribution = self._attribute(bundle.generator_hint, label, embedding, notes)
-        edit = self._localize(loaded, label, notes)
+        edit = self._localize(loaded, label, notes, precomputed=localization)
         explain = self._explain(loaded, notes)
 
         notes.append(_DISCLAIMER)
@@ -315,7 +326,7 @@ class ForensicsEngine:
             )
         return items
 
-    def _localize(self, loaded, label: str, notes: list[str]) -> EditReport:
+    def _localize(self, loaded, label: str, notes: list[str], precomputed=None) -> EditReport:
         display = loaded.display_rgb
         dh, dw = display.shape[:2]
         heat = None
@@ -339,7 +350,7 @@ class ForensicsEngine:
                 heat = None
 
         if heat is None:
-            localization = self.localizer.localize(loaded.analysis_rgb)
+            localization = precomputed or self.localizer.localize(loaded.analysis_rgb)
             heat = localization.heat
             method = localization.method
             note = localization.note

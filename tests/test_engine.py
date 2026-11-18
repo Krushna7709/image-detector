@@ -1,11 +1,15 @@
 from __future__ import annotations
 
 import io
+from pathlib import Path
 
-from PIL import Image, PngImagePlugin
+import numpy as np
+from PIL import Image, ImageDraw, ImageFilter, PngImagePlugin
 
 from aiforensics.config import Settings
 from aiforensics.core.engine import ForensicsEngine
+
+EXAMPLES = Path(__file__).resolve().parents[1] / "src" / "aiforensics" / "api" / "examples"
 
 
 def _engine(tmp_path) -> ForensicsEngine:
@@ -30,7 +34,7 @@ def test_engine_runs_heuristic_pipeline(tmp_path, image_factory):
     assert result.explain.gradcam is None
     assert result.metadata.format == "PNG"
     assert result.filename == "photo.png"
-    assert len(result.signals) == 7
+    assert len(result.signals) == 9
     assert any("decision support" in note for note in result.notes)
 
 
@@ -83,3 +87,31 @@ def test_metadata_hint_forces_ai_verdict(tmp_path, image_factory):
     assert result.verdict.ai_probability >= 0.90
     assert result.attribution[0].generator == "Midjourney"
     assert result.attribution[0].source == "metadata"
+
+
+def test_local_ai_edit_raises_verdict(tmp_path):
+    """A compact AI-inpainted patch in an otherwise real photo must not read as real."""
+
+    real = Image.open(EXAMPLES / "real_street_market.jpg").convert("RGB")
+    ai = Image.open(EXAMPLES / "ai_portrait.png").convert("RGB")
+    if ai.size != real.size:
+        ai = ai.resize(real.size, Image.Resampling.LANCZOS)
+
+    w, h = ai.size
+    patch = ai.crop((int(w * 0.18), int(h * 0.12), int(w * 0.48), int(h * 0.42)))
+    mask = Image.new("L", patch.size, 0)
+    ImageDraw.Draw(mask).ellipse((8, 8, patch.width - 9, patch.height - 9), fill=255)
+    mask = mask.filter(ImageFilter.GaussianBlur(12))
+
+    canvas = real.copy()
+    canvas.paste(patch, (int(w * 0.35), int(h * 0.18)), mask)
+    buffer = io.BytesIO()
+    canvas.save(buffer, format="PNG")
+
+    engine = _engine(tmp_path)
+    result = engine.analyze(buffer.getvalue(), "edited.png")
+    local = next(signal for signal in result.signals if signal.name == "local_edit")
+    assert local.score >= 0.6
+    assert result.verdict.label == "ai_generated"
+    assert result.verdict.ai_probability >= 0.68
+    assert any("compact region" in note for note in result.notes)

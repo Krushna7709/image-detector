@@ -1,6 +1,6 @@
 # Datasets and split policy
 
-ForensIQ does not bundle a training corpus. This document lists suitable public sources, the split rules the tooling assumes and the licence questions to settle before publishing a model.
+Image Detector does not bundle a training corpus. This document lists suitable public sources, the split rules the tooling assumes and the licence questions to settle before publishing a model.
 
 ## What the pipeline needs
 

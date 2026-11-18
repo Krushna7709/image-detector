@@ -22,12 +22,12 @@ def _model_file(env_name: str, filename: str) -> Path:
     raw = os.getenv(env_name)
     if raw:
         return Path(raw).expanduser().resolve()
-    return _path("FORENSIQ_MODEL_DIR", PROJECT_ROOT / "models") / filename
+    return _path("IMAGE_DETECTOR_MODEL_DIR", PROJECT_ROOT / "models") / filename
 
 
 @dataclass(frozen=True)
 class Settings:
-    app_name: str = "ForensIQ"
+    app_name: str = "Image Detector"
     version: str = "0.1.0"
     description: str = (
         "Detect, localize and attribute AI-generated images with calibrated, "
@@ -36,23 +36,23 @@ class Settings:
 
     project_root: Path = PROJECT_ROOT
     model_dir: Path = field(
-        default_factory=lambda: _path("FORENSIQ_MODEL_DIR", PROJECT_ROOT / "models")
+        default_factory=lambda: _path("IMAGE_DETECTOR_MODEL_DIR", PROJECT_ROOT / "models")
     )
     detector_path: Path = field(
-        default_factory=lambda: _model_file("FORENSIQ_DETECTOR_PATH", "detector.joblib")
+        default_factory=lambda: _model_file("IMAGE_DETECTOR_DETECTOR_PATH", "detector.joblib")
     )
     attribution_path: Path = field(
-        default_factory=lambda: _model_file("FORENSIQ_ATTRIBUTION_PATH", "attribution.joblib")
+        default_factory=lambda: _model_file("IMAGE_DETECTOR_ATTRIBUTION_PATH", "attribution.joblib")
     )
     cnn_path: Path = field(
-        default_factory=lambda: _model_file("FORENSIQ_CNN_PATH", "cnn_detector.pt")
+        default_factory=lambda: _model_file("IMAGE_DETECTOR_CNN_PATH", "cnn_detector.pt")
     )
     localizer_path: Path = field(
-        default_factory=lambda: _model_file("FORENSIQ_LOCALIZER_PATH", "localizer.pt")
+        default_factory=lambda: _model_file("IMAGE_DETECTOR_LOCALIZER_PATH", "localizer.pt")
     )
 
-    clip_model_name: str = os.getenv("FORENSIQ_CLIP_MODEL", "openai/clip-vit-base-patch32")
-    clip_device: str = os.getenv("FORENSIQ_CLIP_DEVICE", "auto")
+    clip_model_name: str = os.getenv("IMAGE_DETECTOR_CLIP_MODEL", "openai/clip-vit-base-patch32")
+    clip_device: str = os.getenv("IMAGE_DETECTOR_CLIP_DEVICE", "auto")
 
     max_upload_bytes: int = 15 * 1024 * 1024
     max_pixels: int = 50_000_000

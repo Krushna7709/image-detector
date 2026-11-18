@@ -47,7 +47,7 @@ def test_analyze_upload(app_client, image_factory):
     assert result["edit"]["method"] in {"heuristic", "unet"}
     assert result["edit"]["heatmap"].startswith("data:image/png;base64,")
     assert result["explain"]["preview"].startswith("data:image/png;base64,")
-    assert len(result["signals"]) == 7
+    assert len(result["signals"]) == 9
     assert result["notes"]
     assert "decision support" in " ".join(result["notes"])
 

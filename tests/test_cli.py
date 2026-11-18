@@ -123,4 +123,4 @@ def test_module_entry_point(tmp_path):
         timeout=120,
     )
     assert result.returncode == 0
-    assert "ForensIQ" in result.stdout
+    assert "Image Detector" in result.stdout

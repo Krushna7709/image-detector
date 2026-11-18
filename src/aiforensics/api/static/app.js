@@ -29,9 +29,13 @@ const signalList = $("signalList");
 const exampleGrid = $("exampleGrid");
 const dropzone = $("dropzone");
 const fileInput = $("fileInput");
+const dzPreview = $("dzPreview");
 const fileRow = $("fileRow");
 const fileName = $("fileName");
 const fileSize = $("fileSize");
+const intakeResult = $("intakeResult");
+const intakeResultValue = $("intakeResultValue");
+const intakeResultMeta = $("intakeResultMeta");
 const distortionSelect = $("distortionSelect");
 const analyzeBtn = $("analyzeBtn");
 const loadingCard = $("loadingCard");
@@ -50,6 +54,7 @@ let currentAnalysis = null;
 let busy = false;
 let toastTimer = null;
 let loadingTimer = null;
+let previewUrl = null;
 
 function el(tag, className, text) {
   const node = document.createElement(tag);
@@ -86,7 +91,7 @@ async function requestJson(url, options) {
   try {
     response = await fetch(url, options);
   } catch {
-    throw new Error("Could not reach the ForensIQ server. Is it running?");
+    throw new Error("Could not reach the Image Detector server. Is it running?");
   }
   let body = null;
   try {
@@ -113,6 +118,7 @@ function startLoading() {
   loadingCard.classList.remove("hidden");
   howGrid.classList.add("hidden");
   results.classList.add("hidden");
+  hideIntakeResult();
   loadingCard.scrollIntoView({ behavior: "smooth", block: "center" });
   let index = 0;
   loadingText.textContent = LOADING_STEPS[0];
@@ -173,6 +179,7 @@ function renderResult(result) {
   renderMetadata(result.metadata);
   renderNotes(result);
   renderReport(result);
+  renderIntakeResult(result);
   resetStress();
 }
 
@@ -186,17 +193,17 @@ function renderVerdict(result) {
   const copy = {
     ai_generated: {
       chip: "AI-generated",
-      title: "Likely AI-generated",
+      title: "This image is AI-generated",
       sub: "Synthetic artefacts or provenance dominate the evidence. Treat this as a strong lead, not proof.",
     },
     real: {
       chip: "Camera capture",
-      title: "Likely a real photograph",
+      title: "This image is a real photo",
       sub: "Signals are consistent with camera-captured imagery; this does not rule out subtle edits.",
     },
     uncertain: {
       chip: "Inconclusive",
-      title: "Evidence is inconclusive",
+      title: "This image is inconclusive",
       sub: "Signals conflict or fall inside the uncertainty band. Review the evidence before acting.",
     },
   }[verdict.label];
@@ -232,21 +239,21 @@ function renderSignals(signals) {
     const fill = el("div", "signal-fill");
     if (signal.score >= 0.62) fill.classList.add("hot");
     else if (signal.score >= 0.42) fill.classList.add("warn");
-    fill.style.width = "0%";
+    fill.style.transform = "scaleX(0)";
     track.appendChild(fill);
     row.append(head, track);
     row.append(
       el(
         "p",
         "signal-detail",
-        `${signal.detail} · weight ${Math.round(signal.weight * 100)}% · reliability ${Math.round(
+        `${signal.detail} Weight ${Math.round(signal.weight * 100)}%, reliability ${Math.round(
           signal.reliability * 100
-        )}%`
+        )}%.`
       )
     );
     signalList.appendChild(row);
     requestAnimationFrame(() => {
-      fill.style.width = pct(signal.score, 1);
+      fill.style.transform = `scaleX(${signal.score})`;
     });
   }
 }
@@ -262,7 +269,7 @@ function renderViewer(result) {
   const { edit } = result;
   const regionText = edit.regions.length === 1 ? "1 suspicious region" : `${edit.regions.length} suspicious regions`;
   $("editCaption").textContent =
-    `${pct(edit.edited_probability)} estimated edit probability · ${regionText} · ${edit.method} method. ` +
+    `${pct(edit.edited_probability)} estimated edit probability, ${regionText}, ${edit.method} method. ` +
     edit.note;
 }
 
@@ -295,12 +302,12 @@ function renderAttribution(result) {
     head.append(el("span", "attribution-conf", pct(item.confidence)));
     const track = el("div", "attribution-track");
     const fill = el("div", `attribution-fill${item.known ? "" : " unknown"}`);
-    fill.style.width = "0%";
+    fill.style.transform = "scaleX(0)";
     track.appendChild(fill);
     row.append(head, track);
     list.appendChild(row);
     requestAnimationFrame(() => {
-      fill.style.width = pct(item.confidence, 1);
+      fill.style.transform = `scaleX(${item.confidence})`;
     });
   }
 
@@ -332,23 +339,23 @@ function renderExplain(explain) {
 function renderMetadata(metadata) {
   const grid = $("metadataGrid");
   grid.replaceChildren();
-  $("metaFormat").textContent = `${metadata.format} · ${metadata.width}×${metadata.height}`;
+  $("metaFormat").textContent = `${metadata.format}, ${metadata.width} × ${metadata.height}`;
 
   const entries = [
     ["Dimensions", `${metadata.width} × ${metadata.height}`],
     ["File size", humanSize(metadata.file_size_bytes)],
     ["EXIF", metadata.has_exif ? "present" : "none", metadata.has_exif ? "ok" : "warn"],
-    ["Camera", metadata.camera || "—"],
-    ["Software", metadata.software || "—"],
-    ["Captured", metadata.captured_at || "—"],
+    ["Camera", metadata.camera || "not reported"],
+    ["Software", metadata.software || "not reported"],
+    ["Captured", metadata.captured_at || "not reported"],
     ["JPEG quality", metadata.jpeg_quality_estimate ? `~${metadata.jpeg_quality_estimate}` : "n/a"],
     ["C2PA / Content Credentials", metadata.has_c2pa ? "present" : "not found", metadata.has_c2pa ? "ok" : null],
-    ["C2PA agent", metadata.c2pa_agent || "—"],
-    ["Digital source type", metadata.c2pa_source_type || "—", metadata.synthetic_provenance ? "warn" : null],
+    ["C2PA agent", metadata.c2pa_agent || "not reported"],
+    ["Digital source type", metadata.c2pa_source_type || "not reported", metadata.synthetic_provenance ? "warn" : null],
     ["Synthetic provenance", metadata.synthetic_provenance ? "claimed" : "not claimed", metadata.synthetic_provenance ? "warn" : null],
     ["XMP", metadata.has_xmp ? "present" : "not found"],
-    ["PNG text keys", metadata.png_text_keys.length ? metadata.png_text_keys.join(", ") : "—"],
-    ["Generator hint", metadata.generator_hint || "—", metadata.generator_hint ? "warn" : null],
+    ["PNG text keys", metadata.png_text_keys.length ? metadata.png_text_keys.join(", ") : "none"],
+    ["Generator hint", metadata.generator_hint || "not reported", metadata.generator_hint ? "warn" : null],
     ["Watermark marker", metadata.watermark_marker || "not found"],
   ];
 
@@ -379,7 +386,7 @@ function renderReport(result) {
       return result.created_at;
     }
   })();
-  $("timing").textContent = `${distortionLabel} · analyzed in ${result.elapsed_ms} ms · ${stamp}`;
+  $("timing").textContent = `${distortionLabel}, analyzed in ${result.elapsed_ms} ms, ${stamp}`;
   $("stressBtn").disabled = false;
   $("downloadJson").disabled = false;
 }
@@ -421,7 +428,7 @@ async function runStress() {
           el(
             "span",
             "stress-label",
-            verdict.label === "ai_generated" ? "AI" : verdict.label === "real" ? "REAL" : "UNCERTAIN"
+            verdict.label === "ai_generated" ? "AI" : verdict.label === "real" ? "Real" : "Uncertain"
           )
         );
       } catch {
@@ -444,11 +451,52 @@ function downloadJson() {
   const anchor = document.createElement("a");
   const base = result.filename.replace(/\.[^.]+$/, "").replace(/[^\w-]+/g, "_") || "image";
   anchor.href = url;
-  anchor.download = `forensiq_${base}_${result.id.slice(0, 8)}.json`;
+  anchor.download = `image-detector_${base}_${result.id.slice(0, 8)}.json`;
   document.body.appendChild(anchor);
   anchor.click();
   anchor.remove();
   setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
+function renderIntakeResult(result) {
+  const { verdict } = result;
+  const kind =
+    verdict.label === "ai_generated" ? "is-ai" : verdict.label === "real" ? "is-real" : "is-uncertain";
+  const copy = { ai_generated: "AI-generated", real: "Real photo", uncertain: "Inconclusive" }[
+    verdict.label
+  ];
+  intakeResult.classList.remove("is-ai", "is-real", "is-uncertain");
+  intakeResult.classList.add(kind);
+  intakeResultValue.textContent = copy;
+  intakeResultMeta.textContent = `P(AI) ${pct(verdict.ai_probability)}, confidence ${pct(
+    verdict.confidence
+  )}`;
+  intakeResult.classList.remove("hidden");
+}
+
+function hideIntakeResult() {
+  intakeResult.classList.add("hidden");
+  intakeResult.classList.remove("is-ai", "is-real", "is-uncertain");
+}
+
+function setPreview(file) {
+  if (previewUrl) URL.revokeObjectURL(previewUrl);
+  previewUrl = URL.createObjectURL(file);
+  dzPreview.src = previewUrl;
+  dzPreview.alt = `Preview of ${file.name}`;
+  dzPreview.classList.remove("hidden");
+  dropzone.classList.add("has-image");
+}
+
+function clearPreview() {
+  if (previewUrl) {
+    URL.revokeObjectURL(previewUrl);
+    previewUrl = null;
+  }
+  dzPreview.removeAttribute("src");
+  dzPreview.alt = "Preview of the selected image";
+  dzPreview.classList.add("hidden");
+  dropzone.classList.remove("has-image");
 }
 
 function selectFile(file) {
@@ -470,6 +518,8 @@ function selectFile(file) {
   fileName.textContent = file.name;
   fileSize.textContent = humanSize(file.size);
   fileRow.classList.remove("hidden");
+  setPreview(file);
+  hideIntakeResult();
   dropzone.querySelector(".dz-title").textContent = "Image ready";
   dropzone.querySelector(".dz-sub").textContent = "Click to choose a different image";
 }
@@ -478,8 +528,10 @@ function clearFile() {
   selectedFile = null;
   fileInput.value = "";
   fileRow.classList.add("hidden");
+  clearPreview();
+  hideIntakeResult();
   dropzone.querySelector(".dz-title").textContent = "Drop an image here";
-  dropzone.querySelector(".dz-sub").textContent = "or click to browse · JPEG, PNG, WEBP, TIFF · up to 15 MB";
+  dropzone.querySelector(".dz-sub").textContent = "or click to browse. JPEG, PNG, WEBP, TIFF. Up to 15 MB";
 }
 
 function resetAll() {
@@ -503,9 +555,9 @@ async function loadHealth() {
     chip.classList.add("is-live");
     const parts = [health.detector === "heuristic" ? "heuristic engine" : health.detector];
     if (health.attribution) parts.push("attribution");
-    $("engineChipText").textContent = parts.join(" · ");
+    $("engineChipText").textContent = parts.join(", ");
     chip.title =
-      `ForensIQ v${health.version} · localizer: ${health.localizer} · ` +
+      `Image Detector v${health.version}, localizer: ${health.localizer}, ` +
       `CLIP backbone ${health.clip_loaded ? "loaded" : "not loaded"} (${health.clip_backbone})`;
   } catch {
     chip.classList.add("is-warn");
@@ -523,10 +575,12 @@ async function loadExamples() {
       card.className = "example-card";
       card.title = `Analyze sample: ${example.label}`;
       const image = new Image();
+      image.width = 1200;
+      image.height = 900;
       image.src = example.url;
       image.alt = example.label;
       image.loading = "lazy";
-      const tag = el("span", `example-tag kind-${example.kind}`, example.kind === "ai" ? "AI" : "REAL");
+      const tag = el("span", `example-tag kind-${example.kind}`, example.kind === "ai" ? "AI" : "Real");
       const name = el("span", "example-name", example.label);
       card.append(image, tag, name);
       card.addEventListener("click", () => {
@@ -536,7 +590,7 @@ async function loadExamples() {
       exampleGrid.appendChild(card);
     }
   } catch {
-    exampleGrid.replaceChildren(el("p", "caption", "Sample images unavailable."));
+    exampleGrid.replaceChildren(el("p", "caption", "Samples could not be loaded. Upload your own image above."));
   }
 }
 

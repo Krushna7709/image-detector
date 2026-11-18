@@ -3,7 +3,7 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "forensiq"
+name = "image-detector"
 version = "0.1.0"
 description = "Detect, localize and attribute AI-generated images with explainable forensic evidence."
 readme = "README.md"

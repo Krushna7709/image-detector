@@ -1,4 +1,4 @@
-"""ForensIQ - AI image forensics toolkit.
+"""Image Detector - AI image forensics toolkit.
 
 Detect, localize and attribute AI-generated images.
 """

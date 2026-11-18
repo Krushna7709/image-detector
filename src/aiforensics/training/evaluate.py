@@ -335,7 +335,7 @@ def evaluate_engine(
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Evaluate the full ForensIQ engine.")
+    parser = argparse.ArgumentParser(description="Evaluate the full Image Detector engine.")
     parser.add_argument("--manifest", required=True, type=Path)
     parser.add_argument("--splits", nargs="+", choices=("train", "val", "test"), default=None)
     parser.add_argument("--limit", type=int, default=None)

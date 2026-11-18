@@ -1,8 +1,8 @@
-# ForensIQ
+# Image Detector
 
 **Detect, localize and attribute AI-generated images with evidence you can inspect.**
 
-ForensIQ is a research prototype answering three questions about an image:
+Image Detector is a research prototype answering three questions about an image:
 
 1. **Is it real or AI-generated?** A fused probability with an explicit uncertain band.
 2. **Has it been edited?** A localisation heatmap and compact candidate regions.
@@ -10,9 +10,9 @@ ForensIQ is a research prototype answering three questions about an image:
 
 Every report exposes the individual signals, their reliability, the frequency spectrum, the heatmap and the provenance evidence. The application never presents a bare verdict: it shows uncertainty, limitations and a decision-support disclaimer.
 
-![ForensIQ home](docs/assets/ui-home.png)
+![Image Detector home](docs/assets/ui-home.png)
 
-![ForensIQ analysis report](docs/assets/ui-result.png)
+![Image Detector analysis report](docs/assets/ui-result.png)
 
 > **Decision support, not proof.** No statistical detector is reliable enough to judge authenticity on its own. Treat every result as a lead for human review.
 
@@ -22,7 +22,7 @@ Every report exposes the individual signals, their reliability, the frequency sp
 
 | Layer | Default (no weights) | With trained weights |
 | --- | --- | --- |
-| Real vs AI | Seven classical forensic signals, weighted fusion | CLIP embedding + calibrated logistic head, or a small CNN with Grad-CAM |
+| Real vs AI | Nine classical forensic signals, weighted fusion | CLIP embedding + calibrated logistic head, or a small CNN with Grad-CAM |
 | Edit localisation | Residual-noise + JPEG error-level inconsistency heatmap | U-Net segmentation of edit masks |
 | Attribution | EXIF/PNG/C2PA/watermark markers, 11 known generator patterns | Open-set CLIP attribution head with an `unknown generator` outcome |
 | Explainability | Signal table, FFT spectrum, heatmap, region boxes, metadata report | Adds Grad-CAM and U-Net masks |
@@ -31,18 +31,22 @@ The repository intentionally does **not** ship trained weights. Models are large
 
 ### Verified demo results
 
-Measured with the default heuristic engine on the bundled examples (no trained weights):
+Measured with the default heuristic engine on the bundled examples (no trained weights). Verdict bands: real ≤ 0.42, uncertain 0.42–0.62, AI ≥ 0.62.
 
-| Example | Base P(AI) | JPEG q50 | JPEG q30 | Resize 50% | Blur sigma 2 |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| `ai_mountain.png` | 0.900 | 0.316 | 0.313 | 0.484 | 0.601 |
-| `ai_portrait.png` | 0.900 | 0.521 | 0.546 | 0.653 | 0.689 |
-| `ai_product.png` | 0.900 | 0.447 | 0.470 | 0.658 | 0.738 |
-| `real_mountain_lake.jpg` | 0.338 | 0.331 | 0.342 | 0.533 | 0.684 |
-| `real_cat_portrait.jpg` | 0.337 | 0.322 | 0.353 | 0.444 | 0.588 |
-| `real_street_market.jpg` | 0.253 | 0.279 | 0.261 | 0.431 | 0.569 |
+| Example | Truth | Original | JPEG q50 | JPEG q30 | Resize 50% | Blur sigma 2 |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| `ai_mountain.png` | AI | 0.900 | 0.739 | 0.667 | 0.714 | 0.495 |
+| `ai_portrait.png` | AI | 0.951 | 0.821 | 0.780 | 0.553 | 0.575 |
+| `ai_product.png` | AI | 0.918 | 0.820 | 0.797 | 0.824 | 0.530 |
+| `real_cat_portrait.jpg` | Real | 0.103 | 0.141 | 0.117 | 0.170 | 0.403 |
+| `real_mountain_lake.jpg` | Real | 0.403 | 0.562 | 0.249 | 0.450 | 0.478 |
+| `real_street_market.jpg` | Real | 0.275 | 0.433 | 0.285 | 0.365 | 0.415 |
 
-The three synthetic examples carry OpenAI ImageGen C2PA provenance, so the base verdict is floored at 0.90 and attribution reports **OpenAI ImageGen** from metadata. Simulated recompression strips that metadata, which is why the same images fall back to weak classical evidence. This is an honest demonstration of both the value and the fragility of provenance, not a benchmark.
+Across all 30 conditions this is 22 correct, 8 uncertain and 0 confident errors. The uncertain cases are the hardest photographs after recompression, downscaling or blur, plus renders after heavy blur or half-resolution resampling; heavy blur removes the noise-field and high-frequency evidence the engine relies on and resampling erases the pixel-grid trace, so it abstains instead of guessing.
+
+Partially edited images (for example a real photo with an AI-replaced face expression) are also covered: when the upload is lossless or JPEG q95+, a compact region whose noise and recompression behaviour differs from the rest of the frame raises the probability into the AI band, even if the rest of the photo is authentic. JPEG below roughly q95 spreads block noise that mimics this cue, so the local-edit check is skipped there and the report says so.
+
+The three synthetic examples carry OpenAI ImageGen C2PA provenance, so the original verdict is floored at 0.90 and attribution reports **OpenAI ImageGen** from metadata. Simulated recompression strips that metadata, which is why the same images fall back to classical evidence. This is an honest demonstration of both the value and the fragility of provenance, not a benchmark.
 
 Reproduce with:
 
@@ -93,7 +97,7 @@ Upload / CLI path
 
 **Decision bands.** `P(AI) <= 0.42` is reported as real, `0.42 < P(AI) < 0.62` as uncertain, and `P(AI) >= 0.62` as AI-generated. The API also returns `confidence` (1 minus normalised binary entropy) and `reliability`, which reflects how much trustworthy evidence was available.
 
-**Signal weights** in the classical engine: noise heterogeneity 0.30, detail distribution 0.16, noise floor 0.10, spectral decay 0.10, high frequency 0.05, colour signature 0.06, provenance 0.15.
+**Signal weights** in the classical engine: noise heterogeneity 0.405, pixel-grid periodicity 0.188, detail distribution 0.166, provenance 0.099, local edit consistency 0.040, residual noise floor 0.034, spectral decay 0.034, colour signature 0.023, high-frequency balance 0.011. Each weight is further scaled by a per-signal reliability before fusion, so a weak cue cannot dominate. A separate decision rule raises the probability into the AI band when a compact local inconsistency is strong on a lossless or q95+ upload.
 
 ---
 
@@ -188,10 +192,10 @@ Errors are JSON: `{"error": "unsupported_format", "message": "..."}`. Uploads ar
 ### Docker
 
 ```bash
-docker build -t forensiq .
-docker run --rm -p 8000:8000 forensiq
+docker build -t image-detector .
+docker run --rm -p 8000:8000 image-detector
 # Optional trained artifacts:
-docker run --rm -p 8000:8000 -v "$PWD/models:/app/models" forensiq
+docker run --rm -p 8000:8000 -v "$PWD/models:/app/models" image-detector
 ```
 
 The image runs as a non-root user and exposes a health check on `/api/health`.
@@ -200,13 +204,13 @@ The image runs as a non-root user and exposes a health check on `/api/health`.
 
 | Environment variable | Default | Meaning |
 | --- | --- | --- |
-| `FORENSIQ_MODEL_DIR` | `models/` | Directory for all four artifacts |
-| `FORENSIQ_DETECTOR_PATH` | `<model_dir>/detector.joblib` | CLIP linear detector |
-| `FORENSIQ_ATTRIBUTION_PATH` | `<model_dir>/attribution.joblib` | Attribution head |
-| `FORENSIQ_CNN_PATH` | `<model_dir>/cnn_detector.pt` | CNN detector |
-| `FORENSIQ_LOCALIZER_PATH` | `<model_dir>/localizer.pt` | U-Net localizer |
-| `FORENSIQ_CLIP_MODEL` | `openai/clip-vit-base-patch32` | CLIP backbone id |
-| `FORENSIQ_CLIP_DEVICE` | `auto` | `auto`, `cpu` or `cuda` |
+| `IMAGE_DETECTOR_MODEL_DIR` | `models/` | Directory for all four artifacts |
+| `IMAGE_DETECTOR_DETECTOR_PATH` | `<model_dir>/detector.joblib` | CLIP linear detector |
+| `IMAGE_DETECTOR_ATTRIBUTION_PATH` | `<model_dir>/attribution.joblib` | Attribution head |
+| `IMAGE_DETECTOR_CNN_PATH` | `<model_dir>/cnn_detector.pt` | CNN detector |
+| `IMAGE_DETECTOR_LOCALIZER_PATH` | `<model_dir>/localizer.pt` | U-Net localizer |
+| `IMAGE_DETECTOR_CLIP_MODEL` | `openai/clip-vit-base-patch32` | CLIP backbone id |
+| `IMAGE_DETECTOR_CLIP_DEVICE` | `auto` | `auto`, `cpu` or `cuda` |
 
 The CNN takes precedence over the linear head when both exist. Missing or failed artifacts degrade gracefully to the classical engine and say so in the report.
 

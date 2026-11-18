@@ -23,7 +23,7 @@ if not exist ".venv\Scripts\python.exe" (
   )
 )
 
-echo Installing ForensIQ and development dependencies ...
+echo Installing Image Detector and development dependencies ...
 ".venv\Scripts\python.exe" -m pip install --upgrade pip
 if errorlevel 1 exit /b 1
 ".venv\Scripts\python.exe" -m pip install -e ".[dev]"

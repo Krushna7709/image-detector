@@ -14,6 +14,15 @@ Every report exposes the individual signals, their reliability, the frequency sp
 
 ![Image Detector analysis report](docs/assets/ui-result.png)
 
+## Videos
+
+Two 36-second narrated cuts are built from real screenshots of this app:
+
+- [Landscape promo, 1920×1080](docs/promo.mp4)
+- [Vertical reel, 1080×1920](docs/reel.mp4)
+
+GitHub does not play MP4 files inline, so open the link and download the file to watch it. Both are reproducible from the repository: `promo/capture*.mjs` re-takes the screenshots in `promo/shots/` with Puppeteer, `promo/make_video.py` composes the landscape cut, `promo/voiceover.py` synthesises the narration and muxes it in, and `promo/make_reel.py` renders the vertical cut with the same audio track. They need `pillow`, `numpy`, `imageio-ffmpeg`, `edge-tts` and a local Chrome, and expect the app to be running locally.
+
 > **Decision support, not proof.** No statistical detector is reliable enough to judge authenticity on its own. Treat every result as a lead for human review.
 
 ---
@@ -357,7 +366,8 @@ src/aiforensics/
   preprocessing.py
   schemas.py
 tests/
-docs/
+docs/             assets, model card, and the promo/reel videos
+promo/            screenshot capture and video build scripts
 models/           trained artifacts (not committed)
 run.bat / run.ps1 / run.sh   launchers (prefer .venv when present)
 setup.bat         one-command Windows environment setup

@@ -9,6 +9,8 @@ from pathlib import Path
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
+from make_subs import cues
+
 HERE = Path(__file__).resolve().parent
 SHOTS = HERE / "shots"
 SILENT = HERE / "reel_silent.mp4"
@@ -17,6 +19,10 @@ OUT = HERE.parent / "docs" / "reel.mp4"
 W, H = 1080, 1920
 FPS = 30
 XFADE = 0.7
+STRIP = 170
+DH = H - STRIP
+
+CAPTIONS = cues()
 
 INK = (12, 14, 17)
 WHITE = (238, 240, 243)
@@ -49,25 +55,25 @@ def load_shot(name: str) -> Image.Image:
 
 
 def crop_at(img: Image.Image, cx: float, cy: float, width: float) -> Image.Image:
-    height = width * H / W
+    height = width * DH / W
     x0 = max(0.0, min(img.width - width, cx - width / 2))
     y0 = max(0.0, min(img.height - height, cy - height / 2))
     return img.crop((round(x0), round(y0), round(x0 + width), round(y0 + height))).resize(
-        (W, H), Image.Resampling.LANCZOS
+        (W, DH), Image.Resampling.LANCZOS
     )
 
 
 def build_scrim() -> Image.Image:
-    alpha = np.zeros((H, W, 4), dtype=np.uint8)
+    alpha = np.zeros((DH, W, 4), dtype=np.uint8)
     alpha[:, :, :3] = INK
-    start, ramp_end = H - 400, H - 320
+    start, ramp_end = DH - 400, DH - 320
     alpha[start:ramp_end, :, 3] = np.linspace(0, 255, ramp_end - start, dtype=np.uint8)[:, None]
     alpha[ramp_end:, :, 3] = 255
     return Image.fromarray(alpha, "RGBA")
 
 
 def build_top() -> Image.Image:
-    alpha = np.zeros((H, W, 4), dtype=np.uint8)
+    alpha = np.zeros((DH, W, 4), dtype=np.uint8)
     alpha[:, :, :3] = INK
     alpha[:120, :, 3] = np.linspace(190, 0, 120, dtype=np.uint8)[:, None]
     return Image.fromarray(alpha, "RGBA")
@@ -78,12 +84,45 @@ TOP = build_top()
 
 
 def caption_layer(title: str, sub: str) -> Image.Image:
-    layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    layer = Image.new("RGBA", (W, DH), (0, 0, 0, 0))
     draw = ImageDraw.Draw(layer)
-    x, y = 72, H - 300
+    x, y = 72, DH - 300
     draw.rectangle((x, y, x + 72, y + 6), fill=AMBER + (255,))
     draw.text((x, y + 34), title, font=font(BOLD, 66), fill=WHITE + (255,))
     draw.text((x, y + 124), sub, font=font(REG, 36), fill=MUTED + (255,))
+    return layer
+
+
+CAP_FONT = font(REG, 40)
+
+
+def wrap(draw: ImageDraw.ImageDraw, text: str, fnt: ImageFont.FreeTypeFont, max_width: float) -> list[str]:
+    lines, line = [], ""
+    for word in text.split():
+        trial = f"{line} {word}".strip()
+        if not line or draw.textlength(trial, font=fnt) <= max_width:
+            line = trial
+        else:
+            lines.append(line)
+            line = word
+    if line:
+        lines.append(line)
+    return lines
+
+
+def caption_strip(now: float) -> Image.Image:
+    layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    text = next((text for start, end, text in CAPTIONS if start <= now < end), "")
+    if not text:
+        return layer
+    draw = ImageDraw.Draw(layer)
+    lines = wrap(draw, text, CAP_FONT, W - 140)
+    line_height = int(40 * 1.3)
+    y = DH + (STRIP - len(lines) * line_height) // 2
+    for line in lines:
+        width = draw.textlength(line, font=CAP_FONT)
+        draw.text(((W - width) / 2, y), line, font=CAP_FONT, fill=WHITE + (255,))
+        y += line_height
     return layer
 
 
@@ -158,7 +197,10 @@ def scene_frame(scene: dict, t: float) -> Image.Image:
     frame = frame.convert("RGBA")
     frame = Image.alpha_composite(frame, TOP)
     frame = Image.alpha_composite(frame, SCRIM)
-    return Image.alpha_composite(frame, caption_layer(scene["title"], scene["sub"]))
+    frame = Image.alpha_composite(frame, caption_layer(scene["title"], scene["sub"]))
+    canvas = Image.new("RGBA", (W, H), INK + (255,))
+    canvas.paste(frame, (0, 0))
+    return canvas
 
 
 def ffmpeg() -> str:
@@ -203,6 +245,7 @@ def main() -> None:
                     nxt = scene_frame(SCENES[i + 1], (now - (finish - XFADE)) / SCENES[i + 1]["dur"])
                     frame = Image.blend(frame, nxt, smooth((now - (finish - XFADE)) / XFADE))
                 break
+        frame = Image.alpha_composite(frame, caption_strip(now))
         rgb = np.array(frame.convert("RGB"))[:, :, ::-1]
         encoder.stdin.write(rgb.tobytes())
         if index % 120 == 0:

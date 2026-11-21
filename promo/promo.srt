@@ -11,7 +11,7 @@ Start with a sample. Or drop in your own.
 Nine forensic checks run in seconds. Here: ninety percent AI-generated.
 
 4
-00:00:14,900 --> 00:00:21,230
+00:00:14,900 --> 00:00:20,950
 Noise fields. Pixel grids. Spectral decay. Provenance. Every signal, explained.
 
 5

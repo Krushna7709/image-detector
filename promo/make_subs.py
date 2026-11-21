@@ -1,4 +1,8 @@
-"""Write SRT/VTT captions from the narration and mux them into both cuts."""
+"""Write SRT/VTT captions from the narration and mux them into both cuts.
+
+The visible captions are drawn into the frame by make_video.py and make_reel.py;
+this embeds the soft subtitle track browsers can expose and writes the sidecars.
+"""
 
 from __future__ import annotations
 
@@ -32,10 +36,13 @@ def stamp(seconds: float, sep: str) -> str:
 
 
 def cues() -> list[tuple[float, float, str]]:
+    starts = [float(start) for start, _ in LINES]
     found = []
     for index, (start, text) in enumerate(LINES, start=1):
         start = float(start)
         end = start + clip_length(HERE / "voice" / f"line{index}.mp3") + 0.35
+        if index < len(LINES):
+            end = min(end, starts[index] - 0.05)
         found.append((start, end, text))
     return found
 
@@ -52,7 +59,14 @@ def write_subs(items: list[tuple[float, float, str]]) -> None:
     VTT.write_text("\n".join(vtt), encoding="utf-8")
 
 
+def has_subtitle_track(video: Path) -> bool:
+    info = subprocess.run([ffmpeg(), "-hide_banner", "-i", str(video)], capture_output=True, text=True)
+    return "Subtitle:" in info.stderr
+
+
 def mux(video: Path) -> None:
+    if has_subtitle_track(video):
+        return
     out = video.with_name(video.stem + ".subbed.mp4")
     subprocess.run(
         [

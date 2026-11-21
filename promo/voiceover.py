@@ -45,6 +45,8 @@ def duration(path: Path) -> float:
 
 async def synth(index: int, text: str) -> Path:
     out = WORK / f"line{index}.mp3"
+    if out.exists():
+        return out
     for attempt in range(4):
         try:
             await edge_tts.Communicate(text, VOICE, rate=RATE).save(str(out))

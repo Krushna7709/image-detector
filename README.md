@@ -18,15 +18,15 @@ Every report exposes the individual signals, their reliability, the frequency sp
 
 Two 36-second narrated cuts are built from real screenshots of this app:
 
-<video src="https://github.com/user-attachments/assets/90c64de6-ab0d-44be-984e-065803a81493" controls playsinline width="740"></video>
+<video src="https://github.com/user-attachments/assets/9c7e9726-7c27-479d-a520-92a5e95751db" controls playsinline width="740"></video>
 
-*Landscape promo, 1920×1080 — [download](docs/promo.mp4)*
+*Landscape promo, 1920×1080 — [download](docs/promo.mp4) · subtitles [SRT](promo/promo.srt) / [VTT](promo/promo.vtt)*
 
-<video src="https://github.com/user-attachments/assets/c3116bf6-713d-4171-9122-13a5e76b481f" controls playsinline width="360"></video>
+<video src="https://github.com/user-attachments/assets/5206c0d0-fd16-4046-9158-e4e3f6f0f779" controls playsinline width="360"></video>
 
-*Vertical reel, 1080×1920 — [download](docs/reel.mp4)*
+*Vertical reel, 1080×1920 — [download](docs/reel.mp4) · subtitles [SRT](promo/promo.srt) / [VTT](promo/promo.vtt)*
 
-GitHub streams video only from attachments on issues, pull requests and comments, so the players are served from [issue #1](../../issues/1) while the download links point at the committed copies. Both videos are reproducible from the repository: `promo/capture*.mjs` re-takes the screenshots in `promo/shots/` with Puppeteer, `promo/make_video.py` composes the landscape cut, `promo/voiceover.py` synthesises the narration and muxes it in, and `promo/make_reel.py` renders the vertical cut with the same audio track. They need `pillow`, `numpy`, `imageio-ffmpeg`, `edge-tts` and a local Chrome, and expect the app to be running locally.
+Both cuts carry an English subtitle track timed to the narration, with sidecar SRT/VTT files in `promo/`. GitHub streams video only from attachments on issues, pull requests and comments, so the players are served from [issue #1](../../issues/1) while the download links point at the committed copies. Both videos are reproducible from the repository: `promo/capture*.mjs` re-takes the screenshots in `promo/shots/` with Puppeteer, `promo/make_video.py` composes the landscape cut, `promo/voiceover.py` synthesises the narration and muxes it in, `promo/make_reel.py` renders the vertical cut with the same audio track, and `promo/make_subs.py` writes the captions and embeds them. They need `pillow`, `numpy`, `imageio-ffmpeg`, `edge-tts` and a local Chrome, and expect the app to be running locally.
 
 > **Decision support, not proof.** No statistical detector is reliable enough to judge authenticity on its own. Treat every result as a lead for human review.
 

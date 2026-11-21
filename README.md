@@ -18,15 +18,10 @@ Every report exposes the individual signals, their reliability, the frequency sp
 
 Two 36-second narrated cuts are built from real screenshots of this app:
 
-<video src="https://github.com/user-attachments/assets/90c64de6-ab0d-44be-984e-065803a81493" controls playsinline width="740"></video>
+- [Landscape promo, 1920×1080](docs/promo.mp4) — plays inline if you download it
+- [Vertical reel, 1080×1920](docs/reel.mp4)
 
-*Landscape promo, 1920×1080 — [download](docs/promo.mp4)*
-
-<video src="https://github.com/user-attachments/assets/c3116bf6-713d-4171-9122-13a5e76b481f" controls playsinline width="360"></video>
-
-*Vertical reel, 1080×1920 — [download](docs/reel.mp4)*
-
-The players use GitHub attachment URLs, which are the only source GitHub allows inside a `video` tag; the download links point at the committed copies. Both videos are reproducible from the repository: `promo/capture*.mjs` re-takes the screenshots in `promo/shots/` with Puppeteer, `promo/make_video.py` composes the landscape cut, `promo/voiceover.py` synthesises the narration and muxes it in, and `promo/make_reel.py` renders the vertical cut with the same audio track. They need `pillow`, `numpy`, `imageio-ffmpeg`, `edge-tts` and a local Chrome, and expect the app to be running locally.
+GitHub serves repository files as downloads and only streams media that is attached to an issue, pull request or comment, so these files link rather than autoplay here. Both are reproducible from the repository: `promo/capture*.mjs` re-takes the screenshots in `promo/shots/` with Puppeteer, `promo/make_video.py` composes the landscape cut, `promo/voiceover.py` synthesises the narration and muxes it in, and `promo/make_reel.py` renders the vertical cut with the same audio track. They need `pillow`, `numpy`, `imageio-ffmpeg`, `edge-tts` and a local Chrome, and expect the app to be running locally.
 
 > **Decision support, not proof.** No statistical detector is reliable enough to judge authenticity on its own. Treat every result as a lead for human review.
 

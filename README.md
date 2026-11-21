@@ -22,7 +22,7 @@ Two 36-second narrated cuts are built from real screenshots of this app:
 
 *Landscape promo, 1920×1080 — [download](docs/promo.mp4) · subtitles [SRT](promo/promo.srt) / [VTT](promo/promo.vtt)*
 
-<video src="https://github.com/user-attachments/assets/45fdc4b7-6e18-49bb-add3-7f9c5577bbdf" controls playsinline width="360"></video>
+<video src="https://github.com/user-attachments/assets/e610ea7d-590f-49c6-8bc1-d263f0b845df" controls playsinline width="360"></video>
 
 *Vertical reel, 1080×1920 — [download](docs/reel.mp4) · subtitles [SRT](promo/promo.srt) / [VTT](promo/promo.vtt)*
 

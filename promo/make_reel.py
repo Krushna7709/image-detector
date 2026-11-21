@@ -64,7 +64,7 @@ def crop_at(img: Image.Image, cx: float, cy: float, width: float) -> Image.Image
 def build_scrim() -> Image.Image:
     alpha = np.zeros((H, W, 4), dtype=np.uint8)
     alpha[:, :, :3] = INK
-    start, ramp_end = H - 790, H - 700
+    start, ramp_end = H - 900, H - 810
     alpha[start:ramp_end, :, 3] = np.linspace(0, 255, ramp_end - start, dtype=np.uint8)[:, None]
     alpha[ramp_end:, :, 3] = 255
     return Image.fromarray(alpha, "RGBA")
@@ -84,7 +84,7 @@ TOP = build_top()
 def caption_layer(title: str, sub: str) -> Image.Image:
     layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     draw = ImageDraw.Draw(layer)
-    x, y = 72, H - 660
+    x, y = 72, H - 800
     draw.rectangle((x, y, x + 72, y + 6), fill=AMBER + (255,))
     draw.text((x, y + 34), title, font=font(BOLD, 66), fill=WHITE + (255,))
     draw.text((x, y + 124), sub, font=font(REG, 36), fill=MUTED + (255,))
@@ -116,7 +116,7 @@ def caption_strip(now: float) -> Image.Image:
     draw = ImageDraw.Draw(layer)
     lines = wrap(draw, text, CAP_FONT, W - 140)
     line_height = 50
-    y = H - 340 - len(lines) * line_height
+    y = H - 440 - len(lines) * line_height
     for line in lines:
         width = draw.textlength(line, font=CAP_FONT)
         draw.text(((W - width) / 2, y), line, font=CAP_FONT, fill=WHITE + (255,))
@@ -133,26 +133,26 @@ def closing_frame() -> Image.Image:
     glow = glow.filter(ImageFilter.GaussianBlur(300))
     base = Image.composite(Image.new("RGB", (W, H), (20, 23, 27)), base, glow)
     draw = ImageDraw.Draw(base)
-    draw.rectangle((72, 620, 72 + 96, 626), fill=AMBER)
-    draw.text((72, 664), "Image", font=font(BOLD, 132), fill=WHITE)
-    draw.text((72, 812), "Detector", font=font(BOLD, 132), fill=WHITE)
-    draw.text((76, 994), "Detect, localize, attribute.", font=font(REG, 54), fill=(205, 210, 216))
+    draw.rectangle((72, 540, 72 + 96, 546), fill=AMBER)
+    draw.text((72, 584), "Image", font=font(BOLD, 132), fill=WHITE)
+    draw.text((72, 732), "Detector", font=font(BOLD, 132), fill=WHITE)
+    draw.text((76, 914), "Detect, localize, attribute.", font=font(REG, 54), fill=(205, 210, 216))
     draw.text(
-        (76, 1082),
+        (76, 1002),
         "Nine forensic signals, fused into\none explainable decision.",
         font=font(REG, 38),
         fill=MUTED,
         spacing=14,
     )
     draw.text(
-        (76, 1210),
+        (76, 1140),
         "github.com/Krushna7709/\nimage-detector",
         font=font(MONO, 36),
         fill=AMBER,
         spacing=12,
     )
     draw.text(
-        (76, 1330),
+        (76, 1260),
         "Open source · Python · FastAPI\nRuns locally, nothing stored",
         font=font(REG, 30),
         fill=(130, 138, 148),

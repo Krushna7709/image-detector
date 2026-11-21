@@ -18,15 +18,15 @@ Every report exposes the individual signals, their reliability, the frequency sp
 
 Two 36-second narrated cuts are built from real screenshots of this app:
 
-<video src="https://github.com/user-attachments/assets/dbf1ee0a-d7ab-4125-b019-535c37c7e72b" controls playsinline width="740"></video>
+<video src="https://github.com/user-attachments/assets/22fa583a-fb6d-4f9e-b710-bc59e8ef80e6" controls playsinline width="740"></video>
 
 *Landscape promo, 1920×1080 — [download](docs/promo.mp4) · subtitles [SRT](promo/promo.srt) / [VTT](promo/promo.vtt)*
 
-<video src="https://github.com/user-attachments/assets/252f710a-88b0-46da-95aa-0b318b74fd72" controls playsinline width="360"></video>
+<video src="https://github.com/user-attachments/assets/45fdc4b7-6e18-49bb-add3-7f9c5577bbdf" controls playsinline width="360"></video>
 
 *Vertical reel, 1080×1920 — [download](docs/reel.mp4) · subtitles [SRT](promo/promo.srt) / [VTT](promo/promo.vtt)*
 
-Both cuts carry captions burned in below the frame, timed to the narration, plus an English soft subtitle track for downloaders and sidecar SRT/VTT files in `promo/`. GitHub streams video only from attachments on issues, pull requests and comments, so the players are served from [issue #1](../../issues/1) while the download links point at the committed copies. Both videos are reproducible from the repository: `promo/capture*.mjs` re-takes the screenshots in `promo/shots/` with Puppeteer, `promo/make_video.py` composes the landscape cut with its caption strip, `promo/voiceover.py` synthesises the narration and muxes it in, `promo/make_reel.py` renders the vertical cut with the same audio track, and `promo/make_subs.py` writes the sidecar captions and embeds the soft subtitle track. They need `pillow`, `numpy`, `imageio-ffmpeg`, `edge-tts` and a local Chrome, and expect the app to be running locally.
+Both cuts carry captions burned in above the player's control bar, timed to the narration, plus an English soft subtitle track for downloaders and sidecar SRT/VTT files in `promo/`. GitHub streams video only from attachments on issues, pull requests and comments, so the players are served from [issue #1](../../issues/1) while the download links point at the committed copies. Both videos are reproducible from the repository: `promo/capture*.mjs` re-takes the screenshots in `promo/shots/` with Puppeteer, `promo/make_video.py` composes the landscape cut with its caption band, `promo/voiceover.py` synthesises the narration and muxes it in, `promo/make_reel.py` renders the vertical cut with the same audio track, and `promo/make_subs.py` writes the sidecar captions and embeds the soft subtitle track. They need `pillow`, `numpy`, `imageio-ffmpeg`, `edge-tts` and a local Chrome, and expect the app to be running locally.
 
 > **Decision support, not proof.** No statistical detector is reliable enough to judge authenticity on its own. Treat every result as a lead for human review.
 

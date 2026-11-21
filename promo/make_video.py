@@ -32,8 +32,6 @@ OUT = HERE.parent / "docs" / "promo.mp4"
 W, H = 1920, 1080
 FPS = 30
 XFADE = 0.7
-STRIP = 104
-DH = H - STRIP
 
 CAPTIONS = cues()
 
@@ -69,18 +67,18 @@ def load_shot(name: str) -> Image.Image:
 
 
 def crop_at(img: Image.Image, cx: float, cy: float, width: float) -> Image.Image:
-    height = width * DH / W
+    height = width * H / W
     x0 = max(0.0, min(img.width - width, cx - width / 2))
     y0 = max(0.0, min(img.height - height, cy - height / 2))
     return img.crop((round(x0), round(y0), round(x0 + width), round(y0 + height))).resize(
-        (W, DH), Image.Resampling.LANCZOS
+        (W, H), Image.Resampling.LANCZOS
     )
 
 
 def build_scrim() -> Image.Image:
-    alpha = np.zeros((DH, W, 4), dtype=np.uint8)
+    alpha = np.zeros((H, W, 4), dtype=np.uint8)
     alpha[:, :, :3] = INK
-    start, ramp_end = DH - 330, DH - 260
+    start, ramp_end = H - 620, H - 440
     alpha[start:ramp_end, :, 3] = np.linspace(0, 255, ramp_end - start, dtype=np.uint8)[:, None]
     alpha[ramp_end:, :, 3] = 255
     return Image.fromarray(alpha, "RGBA")
@@ -90,9 +88,9 @@ SCRIM = build_scrim()
 
 
 def caption_layer(title: str, sub: str) -> Image.Image:
-    layer = Image.new("RGBA", (W, DH), (0, 0, 0, 0))
+    layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     draw = ImageDraw.Draw(layer)
-    x, y = 108, DH - 236
+    x, y = 108, H - 420
     draw.rectangle((x, y, x + 64, y + 5), fill=AMBER + (255,))
     draw.text((x, y + 26), title, font=font(BOLD, 54), fill=WHITE + (255,))
     draw.text((x, y + 102), sub, font=font(REG, 31), fill=MUTED + (255,))
@@ -124,7 +122,7 @@ def caption_strip(now: float) -> Image.Image:
     draw = ImageDraw.Draw(layer)
     lines = wrap(draw, text, CAP_FONT, W - 420)
     line_height = int(36 * 1.3)
-    y = DH + (STRIP - len(lines) * line_height) // 2
+    y = H - 190 - len(lines) * line_height
     for line in lines:
         width = draw.textlength(line, font=CAP_FONT)
         draw.text(((W - width) / 2, y), line, font=CAP_FONT, fill=WHITE + (255,))
@@ -157,13 +155,13 @@ def closing_frame() -> Image.Image:
         fill=MUTED,
     )
     draw.text(
-        (112, 760),
+        (112, 700),
         "github.com/Krushna7709/image-detector",
         font=font(MONO, 30),
         fill=AMBER,
     )
     draw.text(
-        (112, 812),
+        (112, 745),
         "Open source  ·  Python  ·  FastAPI  ·  runs locally, nothing stored",
         font=font(REG, 26),
         fill=(130, 138, 148),
@@ -204,10 +202,7 @@ def scene_frame(scene: dict, t: float) -> Image.Image:
     frame = crop_at(img, cx0 + (cx1 - cx0) * e, cy0 + (cy1 - cy0) * e, w0 + (w1 - w0) * e)
     frame = frame.convert("RGBA")
     frame = Image.alpha_composite(frame, SCRIM)
-    frame = Image.alpha_composite(frame, caption_layer(scene["title"], scene["sub"]))
-    canvas = Image.new("RGBA", (W, H), INK + (255,))
-    canvas.paste(frame, (0, 0))
-    return canvas
+    return Image.alpha_composite(frame, caption_layer(scene["title"], scene["sub"]))
 
 
 def main() -> None:
